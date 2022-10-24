@@ -202,7 +202,7 @@ class LtiPostMessage {
 
     async sendPostMessageIfCapable(data: LtiPostMessageData): Promise<LtiPostMessageData> {
         // Call capability service
-        return this.sendPostMessage({subject: 'org.imsglobal.lti.capabilities'}, this.#getTargetWindow(), '*')
+        return this.sendPostMessage({subject: 'lti.capabilities'}, this.#getTargetWindow(), '*')
         .then((capabilities) => {
             if (typeof capabilities.supported_messages == 'undefined') {
                 return Promise.reject({
@@ -225,7 +225,7 @@ class LtiPostMessage {
 
     async putData(key: string, value: any): Promise<boolean> {
         return this.sendPostMessageIfCapable({
-            subject: 'org.imsglobal.lti.put_data',
+            subject: 'lti.put_data',
             key: key,
             value: value
         })
@@ -236,7 +236,7 @@ class LtiPostMessage {
 
     async getData(key: string): Promise<any> {
         return this.sendPostMessageIfCapable({
-            subject: 'org.imsglobal.lti.get_data',
+            subject: 'lti.get_data',
             key: key
         })
         .then((response) => {
