@@ -202,7 +202,11 @@ class LtiPostMessage {
 
     async sendPostMessageIfCapable(data: LtiPostMessageData): Promise<LtiPostMessageData> {
         // Call capability service
-        return this.sendPostMessage({subject: 'lti.capabilities'}, this.#getTargetWindow(), '*')
+        return Promise.any([
+            this.sendPostMessage({subject: 'lti.capabilities'}, this.#getTargetWindow(), '*'),
+            // Send new and old capabilities messages for support with pre-release subjects
+            this.sendPostMessage({subject: 'org.imsglobal.lti.capabilities'}, this.#getTargetWindow(), '*')
+        ])
         .then((capabilities) => {
             if (typeof capabilities.supported_messages == 'undefined') {
                 return Promise.reject({
@@ -211,9 +215,11 @@ class LtiPostMessage {
                 });
             }
             for (let i = 0; i < capabilities.supported_messages.length; i++) {
-                if (capabilities.supported_messages[i].subject !== data.subject) {
+                if (![data.subject, 'org.imsglobal.' + data.subject].includes(capabilities.supported_messages[i].subject)) {
                     continue;
                 }
+                // Use subject specified in capabilities for backwards compatibility
+                data.subject = capabilities.supported_messages[i].subject;
                 return this.sendPostMessage(data, this.#getTargetWindow(), undefined, capabilities.supported_messages[i].frame);
             }
             return Promise.reject({
